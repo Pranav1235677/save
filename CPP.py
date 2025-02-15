@@ -48,7 +48,7 @@ def load_data():
 
 df = load_data()
 
-# ========== TRAIN MODEL ==========
+# ========== TRAIN MODEL (Optimized) ==========
 @st.cache_resource
 def train_model():
     model_file = "trained_models.pkl"
@@ -86,91 +86,101 @@ def train_model():
 
 models, model_performance, scaler = train_model()
 
-# ========== EDA VISUALIZATION ==========
+# ========== PRELOADED EDA VISUALIZATION ==========
 @st.cache_data
 def generate_eda():
     plots = {}
-    fig_size = (3, 1.5)  # Adjusted for better clarity
-    dpi_value = 150  # High clarity
+    fig_size = (5, 3)  # More compact plot size
 
-    # 1. Production Distribution
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
+    # Production Distribution
+    fig, ax = plt.subplots(figsize=fig_size)
     sns.histplot(df["Production"], bins=40, kde=True, ax=ax)
-    ax.set_title("Production Distribution", fontsize=10)
-    ax.tick_params(axis='x', labelsize=8, rotation=30)
-    ax.tick_params(axis='y', labelsize=8)
-    plt.tight_layout()
+    ax.set_title("Production Distribution")
     plots["Production Distribution"] = fig
 
-    # 2. Area Harvested vs Production
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
+    # Area Harvested vs Production
+    fig, ax = plt.subplots(figsize=fig_size)
     sns.scatterplot(x=df["Area_Harvested"], y=df["Production"], ax=ax)
-    ax.set_title("Area Harvested vs Production", fontsize=10)
-    plt.tight_layout()
+    ax.set_title("Area Harvested vs Production")
     plots["Area Harvested vs Production"] = fig
 
-    # 3. Yield vs Production
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
+    # Yield vs Production
+    fig, ax = plt.subplots(figsize=fig_size)
     sns.scatterplot(x=df["Yield"], y=df["Production"], ax=ax)
-    ax.set_title("Yield vs Production", fontsize=10)
-    plt.tight_layout()
+    ax.set_title("Yield vs Production")
     plots["Yield vs Production"] = fig
 
-    # 4. Feature Correlation Heatmap
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
+    # Feature Correlation Heatmap
+    fig, ax = plt.subplots(figsize=fig_size)
     sns.heatmap(df[["Area_Harvested", "Yield", "Production"]].corr(), annot=True, cmap="coolwarm", ax=ax)
-    ax.set_title("Feature Correlation Heatmap", fontsize=10)
-    plt.tight_layout()
+    ax.set_title("Feature Correlation Heatmap")
     plots["Feature Correlation Heatmap"] = fig
 
-    # 5. Boxplot for Outlier Detection
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
+    # Boxplot for Outlier Detection
+    fig, ax = plt.subplots(figsize=fig_size)
     sns.boxplot(data=df[["Area_Harvested", "Yield", "Production"]], ax=ax)
-    ax.set_title("Outlier Analysis (Boxplot)", fontsize=10)
-    plt.tight_layout()
+    ax.set_title("Outlier Analysis (Boxplot)")
     plots["Outlier Analysis"] = fig
 
-    # 6. Log Production Distribution
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
-    sns.histplot(df["Log_Production"], bins=40, kde=True, ax=ax)
-    ax.set_title("Log Production Distribution", fontsize=10)
-    plt.tight_layout()
-    plots["Log Production Distribution"] = fig
+    # Production Trend Over Years
+    fig, ax = plt.subplots(figsize=fig_size)
+    sns.lineplot(data=df, x="Year", y="Production", errorbar=None, ax=ax)
+    ax.set_title("Production Trend Over Years")
+    plots["Production Trend Over Years"] = fig
 
-    # 7. Yearly Production Trend
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
-    df.groupby("Year")["Production"].sum().plot(ax=ax)
-    ax.set_title("Yearly Production Trend", fontsize=10)
-    plt.tight_layout()
-    plots["Yearly Production Trend"] = fig
+    # Area Harvested Over Years
+    fig, ax = plt.subplots(figsize=fig_size)
+    sns.lineplot(data=df, x="Year", y="Area_Harvested", errorbar=None, ax=ax)
+    ax.set_title("Area Harvested Over Years")
+    plots["Area Harvested Over Years"] = fig
 
-    # 8. Crop-wise Production
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
-    sns.boxplot(x="Crop", y="Production", data=df, ax=ax)
-    ax.set_title("Crop-wise Production Distribution", fontsize=10)
-    ax.tick_params(axis='x', rotation=45)
-    plt.tight_layout()
-    plots["Crop-wise Production"] = fig
+    # Yield Over Years
+    fig, ax = plt.subplots(figsize=fig_size)
+    sns.lineplot(data=df, x="Year", y="Yield", errorbar=None, ax=ax)
+    ax.set_title("Yield Over Years")
+    plots["Yield Over Years"] = fig
 
-    # 9. Area-wise Production
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
-    df.groupby("Area")["Production"].sum().nlargest(10).plot(kind="bar", ax=ax)
-    ax.set_title("Top 10 Areas by Production", fontsize=10)
-    plt.tight_layout()
-    plots["Top 10 Areas by Production"] = fig
+    # Pairplot for Feature Relationships
+    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=1.5)
 
-    # 10. Scatter Plot of Area_Harvested vs Yield
-    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
-    sns.scatterplot(x=df["Area_Harvested"], y=df["Yield"], ax=ax)
-    ax.set_title("Area Harvested vs Yield", fontsize=10)
-    plt.tight_layout()
-    plots["Area Harvested vs Yield"] = fig
+    # Density Plot for Production
+    fig, ax = plt.subplots(figsize=fig_size)
+    sns.kdeplot(df["Production"], fill=True, ax=ax)
+    ax.set_title("Density Plot for Production")
+    plots["Density Plot for Production"] = fig
 
     return plots
 
 eda_plots = generate_eda()
 
-# ========== EDA DISPLAY ==========
+# ========== LAYOUT ==========
+st.markdown("<h1 style='text-align: center;'>🌾 Crop Production Prediction</h1>", unsafe_allow_html=True)
+
+col1, col2 = st.columns([2, 1])
+
+# ========== MAIN SECTION (PREDICTION) ==========
+with col1:
+    st.markdown("### Enter Values to Predict Production")
+
+    with st.form(key="prediction_form"):
+        area_harvested = st.number_input("Enter Area Harvested (ha)", min_value=0.0, step=0.1, value=10.0)
+        yield_value = st.number_input("Enter Yield (kg/ha)", min_value=0.0, step=0.1, value=5.0)
+        model_choice = st.selectbox("Select Model", ["Linear Regression", "Random Forest", "XGBoost"])
+
+        submit_button = st.form_submit_button("📈 Predict")
+
+        if submit_button:
+            input_data = scaler.transform([[area_harvested, yield_value, area_harvested * yield_value]])
+            prediction = models[model_choice].predict(input_data)
+            st.success(f"Predicted Crop Production: {prediction[0]:,.2f} tons")
+
+# ========== MODEL PERFORMANCE ==========
+with col2:
+    st.header("📊 Model Performance")
+    for name, r2 in model_performance.items():
+        st.markdown(f"{name}: R² Score = {r2:.4f}")
+
+# ========== EDA SECTION ==========
 st.header("📊 Exploratory Data Analysis")
 eda_option = st.selectbox("Choose an analysis:", list(eda_plots.keys()))
 st.pyplot(eda_plots[eda_option])
