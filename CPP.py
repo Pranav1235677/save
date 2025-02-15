@@ -104,7 +104,7 @@ def generate_eda():
     plots["Area Harvested vs Production"] = fig
 
     # Yield vs Production
-    fig, ax = plt.subplots(figsize=4,2))
+    fig, ax = plt.subplots(figsize=(4,2))
     sns.scatterplot(x=df["Yield"], y=df["Production"], ax=ax)
     ax.set_title("Yield vs Production")
     plots["Yield vs Production"] = fig
@@ -143,7 +143,7 @@ def generate_eda():
     plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=2.0)
 
     # Density Plot for Production
-    fig, ax = plt.subplots(figsize=fig_size)
+    fig, ax = plt.subplots(figsize=(4,2))
     sns.kdeplot(df["Production"], fill=True, ax=ax)
     ax.set_title("Density Plot for Production")
     plots["Density Plot for Production"] = fig
