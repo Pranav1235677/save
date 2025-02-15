@@ -121,32 +121,6 @@ def generate_eda():
     ax.set_title("Log Production Distribution")
     plots["Log Production Distribution"] = fig
 
-    # 7. Yearly Production Trend
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
-    df.groupby("Year")["Production"].sum().plot(ax=ax, marker="o", linestyle="-")
-    ax.set_title("Yearly Production Trend")
-    plots["Yearly Production Trend"] = fig
-
-    # 8. Crop-wise Production
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
-    sns.boxplot(x="Crop", y="Production", data=df, ax=ax)
-    ax.set_title("Crop-wise Production Distribution")
-    ax.tick_params(axis='x', rotation=45)
-    plots["Crop-wise Production"] = fig
-
-    # 9. Area-wise Production
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
-    df.groupby("Area")["Production"].sum().nlargest(10).plot(kind="bar", ax=ax, color="skyblue")
-    ax.set_title("Top 10 Areas by Production")
-    ax.tick_params(axis='x', rotation=45)
-    plots["Top 10 Areas by Production"] = fig
-
-    # 10. Area Harvested vs Yield
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
-    sns.scatterplot(x=df["Area_Harvested"], y=df["Yield"], alpha=0.5, ax=ax)
-    ax.set_title("Area Harvested vs Yield")
-    plots["Area Harvested vs Yield"] = fig
-
     return plots
 
 eda_plots = generate_eda()
@@ -176,3 +150,17 @@ with col2:
     st.header("📊 Model Performance")
     for name, r2 in model_performance.items():
         st.markdown(f"{name}: R² Score = {r2:.4f}")
+
+# ========== EDA DISPLAY ==========
+st.header("🔎 Exploratory Data Analysis (EDA)")
+
+# Debugging: Check if plots are generated
+st.write(f"EDA plots generated: {len(eda_plots)}")
+
+if eda_plots:
+    with st.expander("📊 Click to Expand EDA Visualizations", expanded=True):
+        for title, fig in eda_plots.items():
+            st.subheader(title)
+            st.pyplot(fig)
+else:
+    st.warning("⚠️ No EDA plots generated. Check generate_eda() function.")
