@@ -15,6 +15,15 @@ import os
 # ========== PAGE CONFIGURATION ==========
 st.set_page_config(page_title="Crop Production Prediction", page_icon="🌾", layout="wide")
 
+# Apply Background Color
+st.markdown("""
+    <style>
+        body {
+            background-color: #f5f5f5; /* Light Gray */
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # ========== LOAD DATA ==========
 @st.cache_data
 def load_data():
@@ -25,13 +34,11 @@ def load_data():
     df = df[df["Element"].isin(["Area harvested", "Yield", "Production"])]
     df = df.pivot_table(index=["Area", "Item", "Year"], columns="Element", values="Value").reset_index()
     df.columns = ["Area", "Crop", "Year", "Area_Harvested", "Yield", "Production"]
-
     df.dropna(inplace=True)
 
     # Handling Outliers using IQR
     for col in ["Area_Harvested", "Yield", "Production"]:
-        Q1 = df[col].quantile(0.25)
-        Q3 = df[col].quantile(0.75)
+        Q1, Q3 = df[col].quantile(0.25), df[col].quantile(0.75)
         IQR = Q3 - Q1
         df = df[(df[col] >= Q1 - 1.5 * IQR) & (df[col] <= Q3 + 1.5 * IQR)]
 
@@ -45,8 +52,7 @@ df = load_data()
 @st.cache_resource
 def train_model():
     model_file = "trained_models.pkl"
-    
-    # Load trained models if they exist
+
     if os.path.exists(model_file):
         with open(model_file, "rb") as f:
             trained_models, model_performance, scaler = pickle.load(f)
@@ -65,8 +71,7 @@ def train_model():
             "XGBoost": XGBRegressor(n_estimators=100, learning_rate=0.1, max_depth=5)
         }
 
-        model_performance = {}
-        trained_models = {}
+        model_performance, trained_models = {}, {}
 
         for name, model in models.items():
             model.fit(X_train_scaled, y_train)
@@ -74,7 +79,6 @@ def train_model():
             model_performance[name] = r2_score(y_test, y_pred)
             trained_models[name] = model
 
-        # Save trained models for future use
         with open(model_file, "wb") as f:
             pickle.dump((trained_models, model_performance, scaler), f)
 
@@ -86,12 +90,11 @@ models, model_performance, scaler = train_model()
 @st.cache_data
 def generate_eda():
     plots = {}
-
-    fig_size = (7, 4)  # Compact plot size
+    fig_size = (5, 3)  # More compact plot size
 
     # Production Distribution
     fig, ax = plt.subplots(figsize=fig_size)
-    sns.histplot(df["Production"], bins=50, kde=True, ax=ax)
+    sns.histplot(df["Production"], bins=40, kde=True, ax=ax)
     ax.set_title("Production Distribution")
     plots["Production Distribution"] = fig
 
@@ -138,7 +141,7 @@ def generate_eda():
     plots["Yield Over Years"] = fig
 
     # Pairplot for Feature Relationships
-    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=2)
+    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=1.5)
 
     # Density Plot for Production
     fig, ax = plt.subplots(figsize=fig_size)
