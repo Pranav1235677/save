@@ -6,11 +6,11 @@ import streamlit as st
 import pickle
 
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import r2_score
 
 # Load Dataset  
 df = pd.read_excel("FAOSTAT_data.xlsx")
@@ -34,32 +34,36 @@ for col in ["Area_Harvested", "Yield", "Production"]:
     df = df[(df[col] >= Q1 - 1.5 * IQR) & (df[col] <= Q3 + 1.5 * IQR)]
 
 # FEATURE ENGINEERING
-df["Log_Production"] = np.log1p(df["Production"])
 df["Area_Yield_Interaction"] = df["Area_Harvested"] * df["Yield"]
 
-# Exploratory Data Analysis & Visualizations
-def eda_visualization():
-    st.subheader("🔍 Exploratory Data Analysis")
+# Streamlit App
+st.title("🌾 Crop Production Prediction")
 
+# Exploratory Data Analysis (EDA) Section
+st.sidebar.header("📊 Exploratory Data Analysis")
+eda_option = st.sidebar.selectbox("Choose an analysis", ["None", "Production Distribution", "Scatter Plots", "Feature Correlation"])
+
+if eda_option == "Production Distribution":
+    st.subheader("📌 Production Distribution")
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.histplot(df["Production"], bins=50, kde=True, ax=ax)
-    ax.set_title("Production Distribution")
     st.pyplot(fig)
 
+elif eda_option == "Scatter Plots":
+    st.subheader("📌 Area Harvested vs Production")
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.scatterplot(x=df["Area_Harvested"], y=df["Production"], ax=ax)
-    ax.set_title("Area Harvested vs Production")
     st.pyplot(fig)
 
+    st.subheader("📌 Yield vs Production")
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.scatterplot(x=df["Yield"], y=df["Production"], ax=ax)
-    ax.set_title("Yield vs Production")
     st.pyplot(fig)
 
-    # Correlation Heatmap
+elif eda_option == "Feature Correlation":
+    st.subheader("📌 Feature Correlation Heatmap")
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.heatmap(df[["Area_Harvested", "Yield", "Production"]].corr(), annot=True, cmap="coolwarm", ax=ax)
-    ax.set_title("Feature Correlation Heatmap")
     st.pyplot(fig)
 
 # DATA SPLITTING
@@ -79,13 +83,7 @@ models = {
     "XGBoost": XGBRegressor(n_estimators=100, learning_rate=0.1, max_depth=5)
 }
 
-# Hyperparameter Tuning for RandomForest
-rf_params = {"n_estimators": [50, 100, 150], "max_depth": [None, 10, 20]}
-grid_search = GridSearchCV(RandomForestRegressor(random_state=42), rf_params, cv=5, scoring="r2")
-grid_search.fit(X_train_scaled, y_train)
-best_rf = grid_search.best_estimator_
-
-# Training all models
+# Train and Store Performance
 model_performance = {}
 for name, model in models.items():
     model.fit(X_train_scaled, y_train)
@@ -95,35 +93,30 @@ for name, model in models.items():
 
 # Save Best Model
 best_model = max(model_performance, key=model_performance.get)
-best_model_instance = models[best_model] if best_model != "Random Forest" else best_rf
+best_model_instance = models[best_model]
 
 with open("crop_production_model.pkl", "wb") as f:
     pickle.dump(best_model_instance, f)
 
-# STREAMLIT WEB APPLICATION
-def main():
-    st.title("🌾 Crop Production Prediction")
-    
-    st.sidebar.header("📊 User Input Features")
-    area_harvested = st.sidebar.number_input("Enter Area Harvested (ha)", min_value=0.0)
-    yield_value = st.sidebar.number_input("Enter Yield (kg/ha)", min_value=0.0)
-    
-    model_choice = st.sidebar.selectbox("Select Model", ["Linear Regression", "Random Forest", "XGBoost"])
-    
-    if st.sidebar.button("Predict"):
-        with open("crop_production_model.pkl", "rb") as f:
-            model = pickle.load(f)
+# Prediction Section
+st.sidebar.header("🌱 Make a Prediction")
+area_harvested = st.sidebar.number_input("Enter Area Harvested (ha)", min_value=0.0, step=1.0)
+yield_value = st.sidebar.number_input("Enter Yield (kg/ha)", min_value=0.0, step=1.0)
+model_choice = st.sidebar.selectbox("Select Model", ["Linear Regression", "Random Forest", "XGBoost"])
 
-        input_data = scaler.transform([[area_harvested, yield_value, area_harvested * yield_value]])
-        prediction = model.predict(input_data)
-        st.write(f"Predicted Crop Production: *{prediction[0]:,.2f} tons*")
+if st.sidebar.button("Predict"):
+    with open("crop_production_model.pkl", "rb") as f:
+        model = pickle.load(f)
 
-    # Display model performance
-    st.subheader("📈 Model Performance")
-    for name, r2 in model_performance.items():
-        st.write(f"*{name}:* R² Score = {r2:.4f}")
+    input_data = scaler.transform([[area_harvested, yield_value, area_harvested * yield_value]])
+    prediction = model.predict(input_data)
+    st.subheader(f"🌾 Predicted Crop Production: *{prediction[0]:,.2f} tons*")
 
-    eda_visualization()
+# Display Model Performance
+st.subheader("📈 Model Performance")
+for name, r2 in model_performance.items():
+    st.write(f"*{name}:* R² Score = {r2:.4f}")
 
-if "__name_" == "__main__":
-    main()
+# Run Streamlit
+if "__name_" == "_main_":
+    st.write("✅ Streamlit App Running")
