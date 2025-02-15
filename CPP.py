@@ -41,12 +41,11 @@ def load_data():
 
 df = load_data()
 
-# ========== TRAIN MODEL (Optimized) ==========
+# ========== TRAIN MODEL ==========
 @st.cache_resource
 def train_model():
     model_file = "trained_models.pkl"
     
-    # Load trained models if they exist
     if os.path.exists(model_file):
         with open(model_file, "rb") as f:
             trained_models, model_performance, scaler = pickle.load(f)
@@ -74,7 +73,6 @@ def train_model():
             model_performance[name] = r2_score(y_test, y_pred)
             trained_models[name] = model
 
-        # Save trained models for future use
         with open(model_file, "wb") as f:
             pickle.dump((trained_models, model_performance, scaler), f)
 
@@ -82,34 +80,52 @@ def train_model():
 
 models, model_performance, scaler = train_model()
 
-# ========== PRELOADED EDA VISUALIZATION ==========
+# ========== EXTENDED EDA VISUALIZATIONS ==========
 @st.cache_data
 def generate_eda():
     plots = {}
 
     # Production Distribution
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(12, 6))
     sns.histplot(df["Production"], bins=50, kde=True, ax=ax)
     ax.set_title("Production Distribution")
     plots["Production Distribution"] = fig
 
     # Area Harvested vs Production
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(12, 6))
     sns.scatterplot(x=df["Area_Harvested"], y=df["Production"], ax=ax)
     ax.set_title("Area Harvested vs Production")
     plots["Area Harvested vs Production"] = fig
 
     # Yield vs Production
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(12, 6))
     sns.scatterplot(x=df["Yield"], y=df["Production"], ax=ax)
     ax.set_title("Yield vs Production")
     plots["Yield vs Production"] = fig
 
     # Feature Correlation Heatmap
-    fig, ax = plt.subplots(figsize=(10, 5))
+    fig, ax = plt.subplots(figsize=(12, 6))
     sns.heatmap(df[["Area_Harvested", "Yield", "Production"]].corr(), annot=True, cmap="coolwarm", ax=ax)
     ax.set_title("Feature Correlation Heatmap")
     plots["Feature Correlation Heatmap"] = fig
+
+    # Crop Distribution
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.countplot(y=df["Crop"], order=df["Crop"].value_counts().index, ax=ax)
+    ax.set_title("Crop Distribution")
+    plots["Crop Distribution"] = fig
+
+    # Temporal Trends in Production
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.lineplot(data=df, x="Year", y="Production", hue="Crop", ax=ax)
+    ax.set_title("Crop Production Trends Over Time")
+    plots["Temporal Trends in Production"] = fig
+
+    # Anomaly Detection - Boxplot
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sns.boxplot(data=df[["Area_Harvested", "Yield", "Production"]], ax=ax)
+    ax.set_title("Outlier Analysis")
+    plots["Anomaly Detection (Boxplot)"] = fig
 
     return plots
 
@@ -121,24 +137,22 @@ st.markdown("""
         .main { background-color: #f8f9fa; }
         .stButton>button { background-color: #007bff; color: white; width: 100%; font-size: 18px; border-radius: 10px; }
         .stButton>button:hover { background-color: #0056b3; }
-        .stSelectbox, .stNumberInput { font-size: 18px !important; }
         .stSidebar { background-color: #f1f1f1; padding: 20px; }
-        .stAlert { background-color: #ffeeba; color: black; }
         .title-text { color: #17a2b8; font-weight: bold; text-align: center; }
     </style>
 """, unsafe_allow_html=True)
 
 # ========== LAYOUT ==========
-col1, col2 = st.columns([1, 2])
+col1, col2, col3 = st.columns([1.5, 2, 1])
 
-# ========== SIDEBAR (EDA) ==========
-with st.sidebar:
+# ========== EDA ==========
+with col1:
     st.header("📊 Exploratory Data Analysis")
     eda_option = st.selectbox("Choose an analysis:", list(eda_plots.keys()))
     if eda_option:
         st.pyplot(eda_plots[eda_option])
 
-# ========== MAIN SECTION (PREDICTION) ==========
+# ========== PREDICTION ==========
 with col2:
     st.markdown("<h1 class='title-text'>🌾 Crop Production Prediction</h1>", unsafe_allow_html=True)
     st.markdown("### Enter Values to Predict Production")
@@ -147,7 +161,6 @@ with col2:
         area_harvested = st.number_input("Enter Area Harvested (ha)", min_value=0.0, step=0.1, value=10.0)
         yield_value = st.number_input("Enter Yield (kg/ha)", min_value=0.0, step=0.1, value=5.0)
         model_choice = st.selectbox("Select Model", ["Linear Regression", "Random Forest", "XGBoost"])
-
         submit_button = st.form_submit_button("📈 Predict")
 
         if submit_button:
@@ -156,7 +169,7 @@ with col2:
             st.success(f"*Predicted Crop Production: {prediction[0]:,.2f} tons*")
 
 # ========== MODEL PERFORMANCE ==========
-with col1:
+with col3:
     st.header("📊 Model Performance")
     for name, r2 in model_performance.items():
         st.markdown(f"*{name}:* R² Score = {r2:.4f}")
