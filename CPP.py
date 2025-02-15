@@ -90,7 +90,7 @@ models, model_performance, scaler = train_model()
 @st.cache_data
 def generate_eda():
     plots = {}
-    fig_size = (8, 4)  # Adjusted width for better visualization
+    fig_size = (4, 2)  # Reduced by 50% for better fit
 
     # Production Distribution
     fig, ax = plt.subplots(figsize=fig_size)
@@ -111,7 +111,7 @@ def generate_eda():
     plots["Yield vs Production"] = fig
 
     # Feature Correlation Heatmap
-    fig, ax = plt.subplots(figsize=(7, 5))  # Slightly larger for heatmap readability
+    fig, ax = plt.subplots(figsize=(4, 3))  # Reduced but kept readable
     sns.heatmap(df[["Area_Harvested", "Yield", "Production"]].corr(), annot=True, cmap="coolwarm", ax=ax)
     ax.set_title("Feature Correlation Heatmap")
     plots["Feature Correlation Heatmap"] = fig
@@ -141,7 +141,7 @@ def generate_eda():
     plots["Yield Over Years"] = fig
 
     # Pairplot for Feature Relationships
-    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=2.0)
+    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=1.0)  # Reduced
 
     # Density Plot for Production
     fig, ax = plt.subplots(figsize=fig_size)
