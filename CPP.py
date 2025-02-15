@@ -109,24 +109,6 @@ def generate_eda():
     ax.set_title("Feature Correlation Heatmap")
     plots["Feature Correlation Heatmap"] = fig
 
-    # Crop Distribution
-    fig, ax = plt.subplots(figsize=(12, 6))
-    sns.countplot(y=df["Crop"], order=df["Crop"].value_counts().index, ax=ax)
-    ax.set_title("Crop Distribution")
-    plots["Crop Distribution"] = fig
-
-    # Temporal Trends in Production
-    fig, ax = plt.subplots(figsize=(12, 6))
-    sns.lineplot(data=df, x="Year", y="Production", hue="Crop", ax=ax)
-    ax.set_title("Crop Production Trends Over Time")
-    plots["Temporal Trends in Production"] = fig
-
-    # Anomaly Detection - Boxplot
-    fig, ax = plt.subplots(figsize=(12, 6))
-    sns.boxplot(data=df[["Area_Harvested", "Yield", "Production"]], ax=ax)
-    ax.set_title("Outlier Analysis")
-    plots["Anomaly Detection (Boxplot)"] = fig
-
     return plots
 
 eda_plots = generate_eda()
@@ -134,27 +116,20 @@ eda_plots = generate_eda()
 # ========== STYLING ==========
 st.markdown("""
     <style>
-        .main { background-color: #f8f9fa; }
         .stButton>button { background-color: #007bff; color: white; width: 100%; font-size: 18px; border-radius: 10px; }
         .stButton>button:hover { background-color: #0056b3; }
-        .stSidebar { background-color: #f1f1f1; padding: 20px; }
-        .title-text { color: #17a2b8; font-weight: bold; text-align: center; }
+        .title-text { color: #17a2b8; font-weight: bold; text-align: center; font-size: 30px; }
+        .section-title { font-size: 24px; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
 # ========== LAYOUT ==========
-col1, col2, col3 = st.columns([1.5, 2, 1])
+st.markdown("<h1 class='title-text'>🌾 Crop Production Prediction</h1>", unsafe_allow_html=True)
 
-# ========== EDA ==========
-with col1:
-    st.header("📊 Exploratory Data Analysis")
-    eda_option = st.selectbox("Choose an analysis:", list(eda_plots.keys()))
-    if eda_option:
-        st.pyplot(eda_plots[eda_option])
+col_main, col_right = st.columns([3, 1])
 
 # ========== PREDICTION ==========
-with col2:
-    st.markdown("<h1 class='title-text'>🌾 Crop Production Prediction</h1>", unsafe_allow_html=True)
+with col_main:
     st.markdown("### Enter Values to Predict Production")
 
     with st.form(key="prediction_form"):
@@ -169,7 +144,17 @@ with col2:
             st.success(f"*Predicted Crop Production: {prediction[0]:,.2f} tons*")
 
 # ========== MODEL PERFORMANCE ==========
-with col3:
-    st.header("📊 Model Performance")
+with col_right:
+    st.markdown("### 📊 Model Performance")
     for name, r2 in model_performance.items():
         st.markdown(f"*{name}:* R² Score = {r2:.4f}")
+
+# ========== EDA ==========
+st.markdown("---")
+st.markdown("<h2 class='section-title'>📊 Exploratory Data Analysis</h2>", unsafe_allow_html=True)
+
+eda_col = st.columns([1])
+with eda_col[0]:
+    eda_option = st.selectbox("Choose an analysis:", list(eda_plots.keys()))
+    if eda_option:
+        st.pyplot(eda_plots[eda_option])
