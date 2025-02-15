@@ -82,43 +82,45 @@ models, model_performance, scaler = train_model()
 def generate_eda():
     plots = {}
 
-    fig_width, fig_height = 6, 4
-    dpi_value = 120
+    fig_size = (5, 3.5)
+    dpi_value = 110
+    title_fontsize = 12
+    label_fontsize = 10
 
     # 1. Production Distribution
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
-    sns.histplot(df["Production"], bins=40, kde=True, ax=ax)
-    ax.set_title("Production Distribution")
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
+    sns.histplot(df["Production"], bins=30, kde=True, ax=ax)
+    ax.set_title("Production Distribution", fontsize=title_fontsize)
+    ax.set_xlabel("Production", fontsize=label_fontsize)
+    ax.set_ylabel("Count", fontsize=label_fontsize)
     plots["Production Distribution"] = fig
 
     # 2. Area Harvested vs Production
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
     sns.scatterplot(x=df["Area_Harvested"], y=df["Production"], alpha=0.5, ax=ax)
-    ax.set_title("Area Harvested vs Production")
+    ax.set_title("Area Harvested vs Production", fontsize=title_fontsize)
+    ax.set_xlabel("Area Harvested", fontsize=label_fontsize)
+    ax.set_ylabel("Production", fontsize=label_fontsize)
     plots["Area Harvested vs Production"] = fig
 
     # 3. Yield vs Production
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
     sns.scatterplot(x=df["Yield"], y=df["Production"], alpha=0.5, ax=ax)
-    ax.set_title("Yield vs Production")
+    ax.set_title("Yield vs Production", fontsize=title_fontsize)
+    ax.set_xlabel("Yield", fontsize=label_fontsize)
+    ax.set_ylabel("Production", fontsize=label_fontsize)
     plots["Yield vs Production"] = fig
 
     # 4. Feature Correlation Heatmap
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
     sns.heatmap(df[["Area_Harvested", "Yield", "Production"]].corr(), annot=True, cmap="coolwarm", ax=ax)
-    ax.set_title("Feature Correlation Heatmap")
+    ax.set_title("Feature Correlation Heatmap", fontsize=title_fontsize)
     plots["Feature Correlation Heatmap"] = fig
 
-    # 5. Boxplot for Outlier Detection
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
-    sns.boxplot(data=df[["Area_Harvested", "Yield", "Production"]], ax=ax)
-    ax.set_title("Outlier Analysis (Boxplot)")
-    plots["Outlier Analysis"] = fig
-
-    # 6. Log Production Distribution
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
-    sns.histplot(df["Log_Production"], bins=40, kde=True, ax=ax)
-    ax.set_title("Log Production Distribution")
+    # 5. Log Production Distribution
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
+    sns.histplot(df["Log_Production"], bins=30, kde=True, ax=ax)
+    ax.set_title("Log Production Distribution", fontsize=title_fontsize)
     plots["Log Production Distribution"] = fig
 
     return plots
@@ -151,16 +153,16 @@ with col2:
     for name, r2 in model_performance.items():
         st.markdown(f"{name}: R² Score = {r2:.4f}")
 
-# ========== EDA DISPLAY ==========
-st.header("🔎 Exploratory Data Analysis (EDA)")
+# ========== DISPLAY EDA ==========
+st.markdown("## Exploratory Data Analysis (EDA)")
+col1, col2 = st.columns(2)
 
-# Debugging: Check if plots are generated
-st.write(f"EDA plots generated: {len(eda_plots)}")
-
-if eda_plots:
-    with st.expander("📊 Click to Expand EDA Visualizations", expanded=True):
-        for title, fig in eda_plots.items():
-            st.subheader(title)
+for i, (title, fig) in enumerate(eda_plots.items()):
+    if i % 2 == 0:
+        with col1:
+            st.markdown(f"### {title}")
             st.pyplot(fig)
-else:
-    st.warning("⚠️ No EDA plots generated. Check generate_eda() function.")
+    else:
+        with col2:
+            st.markdown(f"### {title}")
+            st.pyplot(fig)
