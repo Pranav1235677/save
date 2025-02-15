@@ -86,67 +86,51 @@ def train_model():
 
 models, model_performance, scaler = train_model()
 
-# ========== PRELOADED EDA VISUALIZATION ==========
+# ========== EDA VISUALIZATION ==========
 @st.cache_data
 def generate_eda():
-    plots = {}  
+    plots = {}
+    fig_size = (1.5, 0.75)  # Half of previous size
+    dpi_value = 150  # High clarity
 
     # Production Distribution
-    fig, ax = plt.subplots(figsize=(2,1))
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
     sns.histplot(df["Production"], bins=40, kde=True, ax=ax)
-    ax.set_title("Production Distribution")
+    ax.set_title("Production Distribution", fontsize=10)
+    ax.tick_params(axis='x', labelsize=8, rotation=30)
+    ax.tick_params(axis='y', labelsize=8)
+    plt.tight_layout()
     plots["Production Distribution"] = fig
 
     # Area Harvested vs Production
-    fig, ax = plt.subplots(figsize=(2,1))
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
     sns.scatterplot(x=df["Area_Harvested"], y=df["Production"], ax=ax)
-    ax.set_title("Area Harvested vs Production")
+    ax.set_title("Area Harvested vs Production", fontsize=10)
+    ax.tick_params(axis='x', labelsize=8, rotation=30)
+    ax.tick_params(axis='y', labelsize=8)
+    plt.tight_layout()
     plots["Area Harvested vs Production"] = fig
 
     # Yield vs Production
-    fig, ax = plt.subplots(figsize=(2,1))
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
     sns.scatterplot(x=df["Yield"], y=df["Production"], ax=ax)
-    ax.set_title("Yield vs Production")
+    ax.set_title("Yield vs Production", fontsize=10)
+    plt.tight_layout()
     plots["Yield vs Production"] = fig
 
     # Feature Correlation Heatmap
-    fig, ax = plt.subplots(figsize=(2,1))  # Slightly larger for heatmap readability
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
     sns.heatmap(df[["Area_Harvested", "Yield", "Production"]].corr(), annot=True, cmap="coolwarm", ax=ax)
-    ax.set_title("Feature Correlation Heatmap")
+    ax.set_title("Feature Correlation Heatmap", fontsize=10)
+    plt.tight_layout()
     plots["Feature Correlation Heatmap"] = fig
 
     # Boxplot for Outlier Detection
-    fig, ax = plt.subplots(figsize=(2,1))
+    fig, ax = plt.subplots(figsize=fig_size, dpi=dpi_value)
     sns.boxplot(data=df[["Area_Harvested", "Yield", "Production"]], ax=ax)
-    ax.set_title("Outlier Analysis (Boxplot)")
+    ax.set_title("Outlier Analysis (Boxplot)", fontsize=10)
+    plt.tight_layout()
     plots["Outlier Analysis"] = fig
-
-    # Production Trend Over Years
-    fig, ax = plt.subplots(figsize=(2,1))
-    sns.lineplot(data=df, x="Year", y="Production", errorbar=None, ax=ax)
-    ax.set_title("Production Trend Over Years")
-    plots["Production Trend Over Years"] = fig
-
-    # Area Harvested Over Years
-    fig, ax = plt.subplots(figsize=(2,1))
-    sns.lineplot(data=df, x="Year", y="Area_Harvested", errorbar=None, ax=ax)
-    ax.set_title("Area Harvested Over Years")
-    plots["Area Harvested Over Years"] = fig
-
-    # Yield Over Years
-    fig, ax = plt.subplots(figsize=(2,1))
-    sns.lineplot(data=df, x="Year", y="Yield", errorbar=None, ax=ax)
-    ax.set_title("Yield Over Years")
-    plots["Yield Over Years"] = fig
-
-    # Pairplot for Feature Relationships
-    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=1.0)
-
-    # Density Plot for Production
-    fig, ax = plt.subplots(figsize=(2,1))
-    sns.kdeplot(df["Production"], fill=True, ax=ax)
-    ax.set_title("Density Plot for Production")
-    plots["Density Plot for Production"] = fig
 
     return plots
 
