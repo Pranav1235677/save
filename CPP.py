@@ -48,7 +48,7 @@ def load_data():
 
 df = load_data()
 
-# ========== TRAIN MODEL (Optimized) ==========
+# ========== TRAIN MODEL ==========
 @st.cache_resource
 def train_model():
     model_file = "trained_models.pkl"
@@ -90,7 +90,7 @@ models, model_performance, scaler = train_model()
 @st.cache_data
 def generate_eda():
     plots = {}
-    fig_size = (5, 3)  # More compact plot size
+    fig_size = (8, 4)  # Adjusted width for better visualization
 
     # Production Distribution
     fig, ax = plt.subplots(figsize=fig_size)
@@ -111,7 +111,7 @@ def generate_eda():
     plots["Yield vs Production"] = fig
 
     # Feature Correlation Heatmap
-    fig, ax = plt.subplots(figsize=fig_size)
+    fig, ax = plt.subplots(figsize=(7, 5))  # Slightly larger for heatmap readability
     sns.heatmap(df[["Area_Harvested", "Yield", "Production"]].corr(), annot=True, cmap="coolwarm", ax=ax)
     ax.set_title("Feature Correlation Heatmap")
     plots["Feature Correlation Heatmap"] = fig
@@ -141,7 +141,7 @@ def generate_eda():
     plots["Yield Over Years"] = fig
 
     # Pairplot for Feature Relationships
-    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=1.5)
+    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=2.0)
 
     # Density Plot for Production
     fig, ax = plt.subplots(figsize=fig_size)
@@ -172,13 +172,13 @@ with col1:
         if submit_button:
             input_data = scaler.transform([[area_harvested, yield_value, area_harvested * yield_value]])
             prediction = models[model_choice].predict(input_data)
-            st.success(f"*Predicted Crop Production: {prediction[0]:,.2f} tons*")
+            st.success(f"Predicted Crop Production: {prediction[0]:,.2f} tons")
 
 # ========== MODEL PERFORMANCE ==========
 with col2:
     st.header("📊 Model Performance")
     for name, r2 in model_performance.items():
-        st.markdown(f"*{name}:* R² Score = {r2:.4f}")
+        st.markdown(f"{name}: R² Score = {r2:.4f}")
 
 # ========== EDA SECTION ==========
 st.header("📊 Exploratory Data Analysis")
