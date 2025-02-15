@@ -86,72 +86,110 @@ def train_model():
 
 models, model_performance, scaler = train_model()
 
-# ========== PRELOADED EDA VISUALIZATION ==========
+# ========== EDA VISUALIZATION ==========
 @st.cache_data
 def generate_eda():
     plots = {}
-    fig_size = (5, 3)  # More compact plot size
 
-    # Production Distribution
-    fig, ax = plt.subplots(figsize=fig_size)
+    # Optimal figure size and DPI for better visibility
+    fig_width, fig_height = 6, 4
+    dpi_value = 120
+
+    # 1. Production Distribution
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
     sns.histplot(df["Production"], bins=40, kde=True, ax=ax)
-    ax.set_title("Production Distribution")
+    ax.set_title("Production Distribution", fontsize=12)
+    ax.tick_params(axis='x', labelsize=10, rotation=30)
+    plt.tight_layout()
     plots["Production Distribution"] = fig
 
-    # Area Harvested vs Production
-    fig, ax = plt.subplots(figsize=fig_size)
-    sns.scatterplot(x=df["Area_Harvested"], y=df["Production"], ax=ax)
-    ax.set_title("Area Harvested vs Production")
+    # 2. Area Harvested vs Production
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    sns.scatterplot(x=df["Area_Harvested"], y=df["Production"], alpha=0.5, ax=ax)  # Reduce opacity for clarity
+    ax.set_title("Area Harvested vs Production", fontsize=12)
+    plt.tight_layout()
     plots["Area Harvested vs Production"] = fig
 
-    # Yield vs Production
-    fig, ax = plt.subplots(figsize=fig_size)
-    sns.scatterplot(x=df["Yield"], y=df["Production"], ax=ax)
-    ax.set_title("Yield vs Production")
+    # 3. Yield vs Production
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    sns.scatterplot(x=df["Yield"], y=df["Production"], alpha=0.5, ax=ax)
+    ax.set_title("Yield vs Production", fontsize=12)
+    plt.tight_layout()
     plots["Yield vs Production"] = fig
 
-    # Feature Correlation Heatmap
-    fig, ax = plt.subplots(figsize=fig_size)
+    # 4. Feature Correlation Heatmap
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
     sns.heatmap(df[["Area_Harvested", "Yield", "Production"]].corr(), annot=True, cmap="coolwarm", ax=ax)
-    ax.set_title("Feature Correlation Heatmap")
+    ax.set_title("Feature Correlation Heatmap", fontsize=12)
+    plt.tight_layout()
     plots["Feature Correlation Heatmap"] = fig
 
-    # Boxplot for Outlier Detection
-    fig, ax = plt.subplots(figsize=fig_size)
+    # 5. Boxplot for Outlier Detection
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
     sns.boxplot(data=df[["Area_Harvested", "Yield", "Production"]], ax=ax)
-    ax.set_title("Outlier Analysis (Boxplot)")
+    ax.set_title("Outlier Analysis (Boxplot)", fontsize=12)
+    plt.tight_layout()
     plots["Outlier Analysis"] = fig
 
-    # Production Trend Over Years
-    fig, ax = plt.subplots(figsize=fig_size)
-    sns.lineplot(data=df, x="Year", y="Production", errorbar=None, ax=ax)
-    ax.set_title("Production Trend Over Years")
-    plots["Production Trend Over Years"] = fig
+    # 6. Log Production Distribution
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    sns.histplot(df["Log_Production"], bins=40, kde=True, ax=ax)
+    ax.set_title("Log Production Distribution", fontsize=12)
+    plt.tight_layout()
+    plots["Log Production Distribution"] = fig
 
-    # Area Harvested Over Years
-    fig, ax = plt.subplots(figsize=fig_size)
-    sns.lineplot(data=df, x="Year", y="Area_Harvested", errorbar=None, ax=ax)
-    ax.set_title("Area Harvested Over Years")
-    plots["Area Harvested Over Years"] = fig
+    # 7. Yearly Production Trend
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    df.groupby("Year")["Production"].sum().plot(ax=ax, marker="o", linestyle="-")
+    ax.set_title("Yearly Production Trend", fontsize=12)
+    plt.tight_layout()
+    plots["Yearly Production Trend"] = fig
 
-    # Yield Over Years
-    fig, ax = plt.subplots(figsize=fig_size)
-    sns.lineplot(data=df, x="Year", y="Yield", errorbar=None, ax=ax)
-    ax.set_title("Yield Over Years")
-    plots["Yield Over Years"] = fig
+    # 8. Crop-wise Production
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    sns.boxplot(x="Crop", y="Production", data=df, ax=ax)
+    ax.set_title("Crop-wise Production Distribution", fontsize=12)
+    ax.tick_params(axis='x', rotation=45)
+    plt.tight_layout()
+    plots["Crop-wise Production"] = fig
 
-    # Pairplot for Feature Relationships
-    plots["Pairplot of Features"] = sns.pairplot(df[["Area_Harvested", "Yield", "Production"]], height=1.5)
+    # 9. Area-wise Production
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    df.groupby("Area")["Production"].sum().nlargest(10).plot(kind="bar", ax=ax, color="skyblue")
+    ax.set_title("Top 10 Areas by Production", fontsize=12)
+    plt.xticks(rotation=45, ha="right")  # Prevents label overlap
+    plt.tight_layout()
+    plots["Top 10 Areas by Production"] = fig
 
-    # Density Plot for Production
-    fig, ax = plt.subplots(figsize=fig_size)
-    sns.kdeplot(df["Production"], fill=True, ax=ax)
-    ax.set_title("Density Plot for Production")
-    plots["Density Plot for Production"] = fig
+    # 10. Scatter Plot of Area_Harvested vs Yield
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi_value)
+    sns.scatterplot(x=df["Area_Harvested"], y=df["Yield"], alpha=0.5, ax=ax)
+    ax.set_title("Area Harvested vs Yield", fontsize=12)
+    plt.tight_layout()
+    plots["Area Harvested vs Yield"] = fig
 
     return plots
 
 eda_plots = generate_eda()
+
+# ========== EDA DISPLAY ==========
+st.header("📊 Exploratory Data Analysis")
+
+# Use columns to arrange visualizations in a better layout
+col1, col2 = st.columns(2)
+
+# Display each plot in alternating columns
+for i, (plot_name, plot_fig) in enumerate(eda_plots.items()):
+    if i % 2 == 0:
+        with col1:
+            st.subheader(plot_name)
+            st.pyplot(plot_fig)
+    else:
+        with col2:
+            st.subheader(plot_name)
+            st.pyplot(plot_fig)
+
+
 
 # ========== LAYOUT ==========
 st.markdown("<h1 style='text-align: center;'>🌾 Crop Production Prediction</h1>", unsafe_allow_html=True)
