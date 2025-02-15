@@ -124,19 +124,19 @@ def generate_eda():
 
     # Production Trend Over Years
     fig, ax = plt.subplots(figsize=fig_size)
-    sns.lineplot(data=df, x="Year", y="Production", ci=None, ax=ax)
+    sns.lineplot(data=df, x="Year", y="Production", errorbar=None, ax=ax)
     ax.set_title("Production Trend Over Years")
     plots["Production Trend Over Years"] = fig
 
     # Area Harvested Over Years
     fig, ax = plt.subplots(figsize=fig_size)
-    sns.lineplot(data=df, x="Year", y="Area_Harvested", ci=None, ax=ax)
+    sns.lineplot(data=df, x="Year", y="Area_Harvested", errorbar=None, ax=ax)
     ax.set_title("Area Harvested Over Years")
     plots["Area Harvested Over Years"] = fig
 
     # Yield Over Years
     fig, ax = plt.subplots(figsize=fig_size)
-    sns.lineplot(data=df, x="Year", y="Yield", ci=None, ax=ax)
+    sns.lineplot(data=df, x="Year", y="Yield", errorbar=None, ax=ax)
     ax.set_title("Yield Over Years")
     plots["Yield Over Years"] = fig
 
